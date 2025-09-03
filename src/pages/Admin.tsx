@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Search, RefreshCw, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
   const [registrations, setRegistrations] = useState<any[]>([]);
@@ -15,14 +16,8 @@ const Admin = () => {
   const fetchRegistrations = async () => {
     setLoading(true);
     try {
-      // Create a Supabase client to fetch from external database
-      const { createClient } = await import('@supabase/supabase-js');
-      const externalSupabase = createClient(
-        'https://mbvxiphgomdtoaqzmbgv.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1idnhpcGhnb21kdG9hcXptYmd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MjI5MzAsImV4cCI6MjA2OTk5ODkzMH0.k4JOmqn3q0bu2_txC5XxBfgb9YDyqrdK6YmJwSsjKlo'
-      );
-      
-      const { data, error } = await externalSupabase
+      // Fetch registrations from project's Supabase
+      const { data, error } = await (supabase as any)
         .from('registrations')
         .select('*')
         .order('created_at', { ascending: false });
@@ -47,6 +42,11 @@ const Admin = () => {
   };
 
   useEffect(() => {
+    // SEO: set page title and description
+    document.title = 'Admin - Registrations';
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', 'Admin panel to manage registrations, category details and status.');
+
     fetchRegistrations();
   }, []);
 
@@ -126,6 +126,7 @@ const Admin = () => {
                     <TableHead>Mobile</TableHead>
                     <TableHead>Customer ID</TableHead>
                     <TableHead>Ward</TableHead>
+                    <TableHead>Category Details</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Registration Date</TableHead>
                   </TableRow>
@@ -133,7 +134,7 @@ const Admin = () => {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={7} className="text-center py-8">
                         <div className="flex items-center justify-center">
                           <RefreshCw className="h-6 w-6 animate-spin mr-2" />
                           Loading registrations...
@@ -142,7 +143,7 @@ const Admin = () => {
                     </TableRow>
                   ) : filteredRegistrations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         No registrations found
                       </TableCell>
                     </TableRow>
@@ -155,6 +156,7 @@ const Admin = () => {
                         <TableCell>{registration.mobile_number || 'N/A'}</TableCell>
                         <TableCell>{registration.customer_id || 'N/A'}</TableCell>
                         <TableCell>{registration.ward || 'N/A'}</TableCell>
+                        <TableCell>{registration.category_details || registration.category || registration.category_name || 'N/A'}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs ${
                             registration.status === 'pending' 
