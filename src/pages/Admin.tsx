@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Search, RefreshCw, Users } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+
 
 const Admin = () => {
   const [registrations, setRegistrations] = useState<any[]>([]);
@@ -16,8 +16,13 @@ const Admin = () => {
   const fetchRegistrations = async () => {
     setLoading(true);
     try {
-      // Fetch registrations from project's Supabase
-      const { data, error } = await (supabase as any)
+      // Fetch registrations from external Supabase (provided URL/key)
+      const { createClient } = await import('@supabase/supabase-js');
+      const externalSupabase = createClient(
+        'https://mbvxiphgomdtoaqzmbgv.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1idnhpcGhnb21kdG9hcXptYmd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MjI5MzAsImV4cCI6MjA2OTk5ODkzMH0.k4JOmqn3q0bu2_txC5XxBfgb9YDyqrdK6YmJwSsjKlo'
+      );
+      const { data, error } = await externalSupabase
         .from('registrations')
         .select('*')
         .order('created_at', { ascending: false });
